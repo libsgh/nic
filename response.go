@@ -40,6 +40,7 @@ func (r *Response) text() {
 }
 
 func (r *Response) bytes() error {
+	defer r.Body.Close()
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return err
