@@ -3,12 +3,12 @@ package nic
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/axgle/mahonia"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
-
-	"github.com/axgle/mahonia"
 )
 
 // Response is the wrapper for http.Response
@@ -40,16 +40,27 @@ func (r *Response) text() {
 }
 
 func (r *Response) bytes() error {
-	defer r.Body.Close()
+	/*defer r.Body.Close()
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return err
-	}
+	}*/
+	defer r.Body.Close()
+	buffer := make([]byte, 8192)
+	//result := bytes.NewBuffer(nil)
+	for {
+		_, err := r.Body.Read(buffer)
 
+		if err != nil && err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+	}
 	// for multiple reading
 	// e.g. goquery.NewDocumentFromReader
-	r.Body = ioutil.NopCloser(bytes.NewBuffer(data))
-	r.Bytes = data
+	r.Body = ioutil.NopCloser(bytes.NewBuffer(buffer))
+	r.Bytes = buffer
 	return nil
 }
 
